@@ -1,64 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
-function App() {
+const App = () => {
   const navigate = useNavigate();
   const token = localStorage.authToken;
   const [markers, setMarkers] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [initialPosition, setInitialPosition] = useState([0, 0]);
+
+  const mapRef = useRef(null);
 
   useEffect(() => {
-    fetch('http://localhost:8080/user/validate', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          navigate('/');
-        }
+    const getRandomPosition = () => {
+      fetch('http://localhost:8080/map/random/position', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token,
+        },
       })
-      .catch((error) => {
-        console.error('Token doğrulama hatası:', error);
-      });
-
-    function getRandomPosition() {
-      const lat = -90 + Math.random() * 180;
-      const lng = -180 + Math.random() * 360;
-      return [lat, lng];
-    }
-
-    setInitialPosition(getRandomPosition());
-
-    const initialMarkers = Array.from({ length: 100 }, () => ({
-      position: getRandomPosition(),
-    }));
-
-    setMarkers(initialMarkers);
+        .then((response) => {
+          if (!response.ok) {
+            navigate('/');
+          } else {
+            return response.json();
+          }
+        })
+        .then((data) => {
+          setMarkers(data.position);
+          mapRef.current.setView(data.center, data.zoom);
+        })
+        .catch((ex) => {
+          console.log(ex);
+          navigate('/');
+        });
+    };
 
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % 100);
+      getRandomPosition();
     }, 1000);
 
     return () => {
       clearInterval(interval);
     };
-  }, [currentIndex]);
+  }, [token, navigate]);
 
   return (
     <div>
-      <MapContainer center={initialPosition} zoom={2} scrollWheelZoom={false}>
+      <MapContainer ref={mapRef} whenCreated={(map) => (mapRef.current = map)}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
         />
         {markers.map((marker, index) => (
-          <Marker key={index} position={marker.position}>
+          <Marker key={index} position={[marker[0], marker[1]]}>
             <Popup>
               A pretty CSS3 popup. <br /> Easily customizable.
             </Popup>
@@ -67,6 +62,6 @@ function App() {
       </MapContainer>
     </div>
   );
-}
+};
 
 export default App;
