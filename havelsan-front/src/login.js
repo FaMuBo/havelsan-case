@@ -52,6 +52,7 @@ export default function SignIn() {
       .then((data) => {
         console.log(data);
         localStorage.setItem('authToken', data.token);
+        localStorage.setItem('zoom', 6);
         console.log(localStorage);
         navigate('/map');
       })
