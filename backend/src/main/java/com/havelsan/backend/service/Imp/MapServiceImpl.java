@@ -23,7 +23,6 @@ public class MapServiceImpl implements MapService {
 
     @Override
     public Map<String, Object> randomMarkerPosition(Integer zoom) {
-        System.out.println("yeni zoom: " + zoom);
 
         if (markerPositions == null || markerPositions.isEmpty()) {
             markerPositions = new ArrayList<>();
@@ -60,23 +59,28 @@ public class MapServiceImpl implements MapService {
         return Map.of("position", newMarkerPositions,"zoom", zoom);
     }
 
+    /**
+     * The zoom level can range from 0 to a maximum of 18.
+     * @param zoom
+     * @return The maximum allowable difference value based on the zoom level.
+     */
     private double getUpdateThreshold(Integer zoom) {
-        if (zoom >= 1 && zoom <= 5) {
-            return 0.008;
-        } else if (zoom >= 6 && zoom <= 11) {
-            return 0.006;
-        } else if (zoom >= 12 && zoom <= 17) {
-            return 0.003;
-        } else if (zoom == 18) {
-            return 0.001;
-        } else {
-            return 0.0;
+        if(zoom <= 0) {
+            return 0.0d;
+        } else if(zoom < 6) {
+            return 0.008d;
+        } else if(zoom < 12) {
+            return 0.006d;
+        } else if(zoom < 18) {
+            return 0.003d;
         }
+        return 0.001d;
     }
 
     private double getRandomUpdate(Random random) {
         return (random.nextDouble() > 0.5 ? 1 : -1) * (UPDATE_MIN + (UPDATE_MAX - UPDATE_MIN) * random.nextDouble());
     }
+
     private List<Double> generateRandomCoordinate() {
         Random random = new Random();
         Double lat = TURKEY_MIN_LAT + (TURKEY_MAX_LAT - TURKEY_MIN_LAT) * random.nextDouble();

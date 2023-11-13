@@ -11,8 +11,6 @@ const App = () => {
   const mapRef = useRef(null);
   if (mapRef.current != null) {
     let updatedZoom = mapRef?.current?._zoom || 6;
-    console.log('a :>> ', updatedZoom);
-    console.log('mapRef :>> ', mapRef.current._zoom);
     zoom = updatedZoom;
   }
 
@@ -33,9 +31,7 @@ const App = () => {
           }
         })
         .then((data) => {
-          console.log('data :>> ', data);
           setMarkers(data.position);
-          // mapRef.current.setView([39.453616481252034, 34.92024946948174], data.zoom);
         })
         .catch((ex) => {
           console.log(ex);
@@ -58,7 +54,6 @@ const App = () => {
       setZoom(newZoom);
       localStorage.setItem('zoom', newZoom.toString());
       mapRef.current.setZoom(newZoom);
-      console.log('localStorage.zoom :>> ', localStorage);
     }
   };
 
